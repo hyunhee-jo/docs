@@ -5,6 +5,10 @@ sidebarTitle: Connect to an external Redis database
 
 LangSmith uses Redis to back our queuing/caching operations. By default, LangSmith Self-Hosted will use an internal Redis instance. However, you can configure LangSmith to use an external Redis instance. By configuring an external Redis instance, you can more easily manage backups, scaling, and other operational tasks for your Redis instance.
 
+<Warning>
+Each LangSmith installation must use its own dedicated Redis instance. Redis cannot be shared across separate LangSmith installations (for example, between an existing and new cluster during a migration). Sharing it across installations causes deployment tasks to be routed to the wrong cluster.
+</Warning>
+
 <Tip>
 **If you're using a managed Redis service**, we recommend:
 - [Amazon ElastiCache](https://aws.amazon.com/elasticache/redis/) (AWS)
@@ -24,6 +28,7 @@ For cloud-specific IAM/Workload Identity authentication, refer to the [IAM authe
 
 * Note: We only officially support Redis versions >= 5.
 * We support both Standalone and Redis Cluster. See the appropriate sections for deployment instructions.
+* **Azure Cache for Redis:** LangSmith does not support the Enterprise clustering policy. Use the OSS clustering policy instead. See [Azure clustering policy documentation](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-best-practices-enterprise-tiers#clustering-policy) for details.
 * We support no authentication, password, and [IAM/Workload Identity](#iam-authentication) authentication.
 * By default, we recommend an instance with at least 2 vCPUs and 8GB of memory. However, the actual requirements will depend on your tracing workload. We recommend monitoring your Redis instance and scaling up as needed.
 
@@ -398,7 +403,7 @@ redis:
 
 You must apply the ServiceAccount annotations required by AWS IRSA to all LangSmith components that connect to Redis:
 
-**Deployments:** `backend`, `queue`, `platformBackend`, `hostBackend`
+**Deployments:** `backend`, `queue`, `platformBackend`, `hostBackend`, `ingestQueue`
 
 Example configuration:
 
@@ -419,6 +424,11 @@ platformBackend:
       eks.amazonaws.com/role-arn: "arn:aws:iam::<account-id>:role/<role-name>"
 
 hostBackend:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::<account-id>:role/<role-name>"
+
+ingestQueue:
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: "arn:aws:iam::<account-id>:role/<role-name>"
@@ -472,7 +482,7 @@ stringData:
 
 You must apply the ServiceAccount annotations required by GCP Workload Identity to all LangSmith components that connect to Redis:
 
-**Deployments:** `backend`, `queue`, `platformBackend`, `hostBackend`
+**Deployments:** `backend`, `queue`, `platformBackend`, `hostBackend`, `ingestQueue`
 
 Example configuration:
 
@@ -493,6 +503,11 @@ platformBackend:
       iam.gke.io/gcp-service-account: "<service-account>@<project>.iam.gserviceaccount.com"
 
 hostBackend:
+  serviceAccount:
+    annotations:
+      iam.gke.io/gcp-service-account: "<service-account>@<project>.iam.gserviceaccount.com"
+
+ingestQueue:
   serviceAccount:
     annotations:
       iam.gke.io/gcp-service-account: "<service-account>@<project>.iam.gserviceaccount.com"
@@ -553,7 +568,7 @@ redis:
 
 You must apply the ServiceAccount annotations and pod labels required by Azure Workload Identity to all LangSmith components that connect to Redis:
 
-**Deployments:** `backend`, `queue`, `platformBackend`, `hostBackend`
+**Deployments:** `backend`, `queue`, `platformBackend`, `hostBackend`, `ingestQueue`
 
 Example configuration:
 
@@ -589,6 +604,14 @@ hostBackend:
   deployment:
     labels:
       azure.workload.identity/use: "true"
+
+ingestQueue:
+  serviceAccount:
+    annotations:
+      azure.workload.identity/client-id: "<managed-identity-client-id>"
+  deployment:
+    labels:
+      azure.workload.identity/use: "true"
 ```
 
 See the [Helm values reference](https://github.com/langchain-ai/helm/blob/main/charts/langsmith/values.yaml) for the full list of configurable services.
@@ -598,9 +621,11 @@ See the [Helm values reference](https://github.com/langchain-ai/helm/blob/main/c
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/langsmith/self-host-external-redis.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>

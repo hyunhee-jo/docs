@@ -23,7 +23,7 @@ npm install @langchain/langgraph
 <Tip>
 **Set up LangSmith for better debugging**
 
-Sign up for [LangSmith](https://smith.langchain.com) to quickly spot issues and improve the performance of your LangGraph projects. LangSmith lets you use trace data to debug, test, and monitor your LLM apps built with LangGraph — read more about how to get started in the [docs](/langsmith/observability).
+Sign up for [LangSmith](https://smith.langchain.com) to quickly spot issues and improve the performance of your LangGraph projects. LangSmith lets you use trace data to debug, test, and monitor your LLM apps built with LangGraph—read more about how to get started in the [docs](/langsmith/observability).
 </Tip>
 
 ## Define and update state
@@ -251,7 +251,7 @@ human: Hi
 ai: Hello!
 ```
 
-This is a versatile representation of state for applications involving [chat models](https://js.langchain.com/docs/concepts/chat_models/). LangGraph includes the pre-built `MessagesValue` for convenience, so that we can have:
+This is a versatile representation of state for applications involving [chat models](https://js.langchain.com/docs/concepts/chat_models/). LangGraph includes the prebuilt `MessagesValue` for convenience, so that we can have:
 
 ```typescript
 import { StateSchema, MessagesValue } from "@langchain/langgraph";
@@ -919,7 +919,7 @@ const step3: GraphNode<typeof State> = (state) => {
 <Note>
 Note that when issuing updates to the state, each node can just specify the value of the key it wishes to update.
 
-By default, this will **overwrite** the value of the corresponding key. You can also use [reducers](/oss/javascript/langgraph/graph-api#reducers) to control how updates are processed— for example, you can append successive updates to a key instead. See [this section](#process-state-updates-with-reducers) for more detail.
+By default, this will **overwrite** the value of the corresponding key. You can also use [reducers](/oss/javascript/langgraph/graph-api#reducers) to control how updates are processed—for example, you can append successive updates to a key instead. See [this section](#process-state-updates-with-reducers) for more detail.
 </Note>
 
 Finally, we define the graph. We use [StateGraph](/oss/javascript/langgraph/graph-api#stategraph) to define a graph that operates on this state.
@@ -1694,10 +1694,10 @@ const lookupUserInfo = tool(
 
 
 <Warning>
-You MUST include `messages` (or any state key used for the message history) in `Command.update` when returning [`Command`](https://reference.langchain.com/javascript/classes/_langchain_langgraph.index.Command.html) from a tool and the list of messages in `messages` MUST contain a `ToolMessage`. This is necessary for the resulting message history to be valid (LLM providers require AI messages with tool calls to be followed by the tool result messages).
+You MUST include `messages` (or any state key used for the message history) in `Command.update` when returning [`Command`](https://reference.langchain.com/javascript/langchain-langgraph/index/Command) from a tool and the list of messages in `messages` MUST contain a `ToolMessage`. This is necessary for the resulting message history to be valid (LLM providers require AI messages with tool calls to be followed by the tool result messages).
 </Warning>
 
-If you are using tools that update state via [`Command`](https://reference.langchain.com/javascript/classes/_langchain_langgraph.index.Command.html), we recommend using prebuilt [`ToolNode`](https://reference.langchain.com/javascript/classes/_langchain_langgraph.prebuilt.ToolNode.html) which automatically handles tools returning [`Command`](https://reference.langchain.com/javascript/classes/_langchain_langgraph.index.Command.html) objects and propagates them to the graph state. If you're writing a custom node that calls tools, you would need to manually propagate [`Command`](https://reference.langchain.com/javascript/classes/_langchain_langgraph.index.Command.html) objects returned by the tools as the update from the node.
+If you are using tools that update state via [`Command`](https://reference.langchain.com/javascript/langchain-langgraph/index/Command), we recommend using prebuilt [`ToolNode`](https://reference.langchain.com/javascript/langchain-langgraph/prebuilt/ToolNode) which automatically handles tools returning [`Command`](https://reference.langchain.com/javascript/langchain-langgraph/index/Command) objects and propagates them to the graph state. If you're writing a custom node that calls tools, you would need to manually propagate [`Command`](https://reference.langchain.com/javascript/langchain-langgraph/index/Command) objects returned by the tools as the update from the node.
 
 ## Visualize your graph
 
@@ -1792,9 +1792,11 @@ await fs.writeFile("graph.png", imageBuffer);
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/langgraph/use-graph-api.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>

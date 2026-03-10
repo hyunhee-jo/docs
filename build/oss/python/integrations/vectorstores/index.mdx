@@ -24,6 +24,9 @@ flowchart LR
         H --> D
         D --> I[📄 Top-k results]
     end
+
+    classDef process fill:#DBEAFE,stroke:#2563EB,stroke-width:2px,color:#1E3A8A
+    class A,B,C,D,E,F,G,H,I process
 ```
 
 ### Interface
@@ -47,7 +50,7 @@ vector_store = InMemoryVectorStore(embedding=SomeEmbeddingModel())
 
 ### Adding documents
 
-Add [`Document`](https://reference.langchain.com/python/langchain_core/documents/#langchain_core.documents.base.Document) objects (holding `page_content` and optional metadata) like so:
+Add [`Document`](https://reference.langchain.com/python/langchain-core/documents/base/Document) objects (holding `page_content` and optional metadata) like so:
 
 ```python
 vector_store.add_documents(documents=[doc1, doc2], ids=["id1", "id2"])
@@ -517,6 +520,64 @@ vector_store = Chroma(
 )
 ```
 </Accordion>
+<Accordion title="CockroachDB">
+
+<CodeGroup>
+```bash pip
+pip install -qU langchain-cockroachdb
+```
+
+```bash uv
+uv add langchain-cockroachdb
+```
+</CodeGroup>
+```python
+from langchain_cockroachdb import AsyncCockroachDBVectorStore, CockroachDBEngine
+
+CONNECTION_STRING = "cockroachdb://user:pass@host:26257/db?sslmode=verify-full"
+
+engine = CockroachDBEngine.from_connection_string(CONNECTION_STRING)
+await engine.ainit_vectorstore_table(
+    table_name="vectors",
+    vector_dimension=1536,
+)
+
+vector_store = AsyncCockroachDBVectorStore(
+    engine=engine,
+    embeddings=embeddings,
+    collection_name="vectors",
+)
+```
+</Accordion>
+<Accordion title="Elasticsearch">
+
+Install the package and start Elasticsearch locally using the [start-local](https://github.com/elastic/start-local) script:
+
+```bash
+pip install -qU langchain-elasticsearch
+curl -fsSL https://elastic.co/start-local | sh
+```
+
+This creates an `elastic-start-local` folder. To start Elasticsearch:
+
+```bash
+cd elastic-start-local
+./start.sh
+```
+
+Elasticsearch will be available at `http://localhost:9200`. The password for the `elastic` user and API key are stored in the `.env` file in the `elastic-start-local` folder.
+
+```python
+from langchain_elasticsearch import ElasticsearchStore
+
+vector_store = ElasticsearchStore(
+    index_name="langchain-demo",
+    embedding=embeddings,
+    es_url="http://localhost:9200",
+)
+```
+
+</Accordion>
 <Accordion title="FAISS">
 ```bash
 pip install -qU langchain-community
@@ -706,6 +767,27 @@ vector_store = OracleVS(
 )
 ```
 </Accordion>
+<Accordion title="turbopuffer">
+
+<CodeGroup>
+```bash pip
+pip install -qU langchain-turbopuffer
+```
+
+```bash uv
+uv add langchain-turbopuffer
+```
+</CodeGroup>
+```python
+from langchain_turbopuffer import TurbopufferVectorStore
+from turbopuffer import Turbopuffer
+
+tpuf = Turbopuffer(region="gcp-us-central1")
+ns = tpuf.namespace("langchain-test")
+
+vector_store = TurbopufferVectorStore(embedding=embeddings, namespace=ns)
+```
+</Accordion>
 </AccordionGroup>
 
 | Vectorstore | Delete by ID | Filtering | Search by Vector | Search with score | Async | Passes Standard Tests | Multi Tenancy | IDs in add Documents |
@@ -715,11 +797,13 @@ vector_store = OracleVS(
 | [`AzureCosmosDBMongoVCoreVectorStore`](/oss/python/integrations/vectorstores/azure_cosmos_db_mongo_vcore) | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ |
 | [`Chroma`](/oss/python/integrations/vectorstores/chroma) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | [`Clickhouse`](/oss/python/integrations/vectorstores/clickhouse) | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ |
+| [`AsyncCockroachDBVectorStore`](/oss/python/integrations/vectorstores/cockroachdb) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 | [`CouchbaseSearchVectorStore`](/oss/python/integrations/vectorstores/couchbase) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | [`DatabricksVectorSearch`](/oss/python/integrations/vectorstores/databricks_vector_search) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | [`ElasticsearchStore`](/oss/python/integrations/vectorstores/elasticsearch) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | [`FAISS`](/oss/python/integrations/vectorstores/faiss) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | [`InMemoryVectorStore`](https://python.langchain.com/api_reference/core/vectorstores/langchain_core.vectorstores.in_memory.InMemoryVectorStore.html) | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| [`LambdaDB`](/oss/python/integrations/vectorstores/lambdadb) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 | [`Milvus`](/oss/python/integrations/vectorstores/milvus) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | [`Moorcheh`](/oss/python/integrations/vectorstores/moorcheh) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | [`MongoDBAtlasVectorSearch`](/oss/python/integrations/vectorstores/mongodb_atlas) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -730,6 +814,7 @@ vector_store = OracleVS(
 | [`QdrantVectorStore`](/oss/python/integrations/vectorstores/qdrant) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | [`Weaviate`](/oss/python/integrations/vectorstores/weaviate) | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | [`SQLServer`](/oss/python/integrations/vectorstores/sqlserver) | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |
+| [`TurbopufferVectorStore`](/oss/python/integrations/vectorstores/turbopuffer) | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ |
 | [`ZeusDB`](/oss/python/integrations/vectorstores/zeusdb) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 | [`Oracle AI Database`](/oss/python/integrations/vectorstores/oracle) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
 
@@ -758,6 +843,7 @@ vector_store = OracleVS(
 <Card title="Chroma" icon="link" href="/oss/python/integrations/vectorstores/chroma" arrow="true" cta="View guide"/>
 <Card title="Clarifai" icon="link" href="/oss/python/integrations/vectorstores/clarifai" arrow="true" cta="View guide"/>
 <Card title="ClickHouse" icon="link" href="/oss/python/integrations/vectorstores/clickhouse" arrow="true" cta="View guide"/>
+<Card title="CockroachDB" icon="link" href="/oss/python/integrations/vectorstores/cockroachdb" arrow="true" cta="View guide"/>
 <Card title="Couchbase" icon="link" href="/oss/python/integrations/vectorstores/couchbase" arrow="true" cta="View guide"/>
 <Card title="DashVector" icon="link" href="/oss/python/integrations/vectorstores/dashvector" arrow="true" cta="View guide"/>
 <Card title="Databricks" icon="link" href="/oss/python/integrations/vectorstores/databricks_vector_search" arrow="true" cta="View guide"/>
@@ -788,6 +874,7 @@ vector_store = OracleVS(
 <Card title="Hologres" icon="link" href="/oss/python/integrations/vectorstores/hologres" arrow="true" cta="View guide"/>
 <Card title="Jaguar Vector Database" icon="link" href="/oss/python/integrations/vectorstores/jaguar" arrow="true" cta="View guide"/>
 <Card title="Kinetica" icon="link" href="/oss/python/integrations/vectorstores/kinetica" arrow="true" cta="View guide"/>
+<Card title="LambdaDB" icon="link" href="/oss/python/integrations/vectorstores/lambdadb" arrow="true" cta="View guide"/>
 <Card title="LanceDB" icon="link" href="/oss/python/integrations/vectorstores/lancedb" arrow="true" cta="View guide"/>
 <Card title="Lantern" icon="link" href="/oss/python/integrations/vectorstores/lantern" arrow="true" cta="View guide"/>
 <Card title="Lindorm" icon="link" href="/oss/python/integrations/vectorstores/lindorm" arrow="true" cta="View guide"/>
@@ -839,6 +926,7 @@ vector_store = OracleVS(
 <Card title="TileDB" icon="link" href="/oss/python/integrations/vectorstores/tiledb" arrow="true" cta="View guide"/>
 <Card title="Timescale Vector" icon="link" href="/oss/python/integrations/vectorstores/timescalevector" arrow="true" cta="View guide"/>
 <Card title="Typesense" icon="link" href="/oss/python/integrations/vectorstores/typesense" arrow="true" cta="View guide"/>
+<Card title="turbopuffer" icon="link" href="/oss/python/integrations/vectorstores/turbopuffer" arrow="true" cta="View guide"/>
 <Card title="Upstash Vector" icon="link" href="/oss/python/integrations/vectorstores/upstash" arrow="true" cta="View guide"/>
 <Card title="USearch" icon="link" href="/oss/python/integrations/vectorstores/usearch" arrow="true" cta="View guide"/>
 <Card title="Vald" icon="link" href="/oss/python/integrations/vectorstores/vald" arrow="true" cta="View guide"/>
@@ -858,13 +946,16 @@ vector_store = OracleVS(
 <Card title="Zep Cloud" icon="link" href="/oss/python/integrations/vectorstores/zep_cloud" arrow="true" cta="View guide"/>
 <Card title="ZeusDB" icon="link" href="/oss/python/integrations/vectorstores/zeusdb" arrow="true" cta="View guide"/>
 <Card title="Zilliz" icon="link" href="/oss/python/integrations/vectorstores/zilliz" arrow="true" cta="View guide"/>
+<Card title="Zvec" icon="link" href="/oss/python/integrations/vectorstores/zvec" arrow="true" cta="View guide"/>
 </Columns>
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/vectorstores/index.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>

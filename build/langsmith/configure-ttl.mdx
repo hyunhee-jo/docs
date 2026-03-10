@@ -32,7 +32,9 @@ Add a `checkpointer.ttl` configuration to your `langgraph.json` file:
 }
 ```
 
-- `strategy`: Specifies the action taken on expiration. Only `"delete"` is supported, which deletes all checkpoints in the thread upon expiration.
+- `strategy`: Specifies the action taken on expiration.
+    - `"delete"`: Removes the entire thread including all associated run and checkpoint data when the TTL expires.
+    - `"keep_latest"`: Retains the thread and latest checkpoint, but deletes older checkpoint data that subsequent runs won't need.
 - `sweep_interval_minutes`: Defines how often, in minutes, the system checks for expired checkpoints.
 - `default_ttl`: Sets the default lifespan of threads (and corresponding checkpoints) in minutes (e.g., 43200 minutes = 30 days). Applies only to checkpoints created after this configuration is deployed; existing checkpoints/threads are not changed. To clear older data, delete it explicitly.
 
@@ -118,9 +120,11 @@ For details on other configurable options, refer to the [LangGraph CLI reference
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/langsmith/configure-ttl.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>

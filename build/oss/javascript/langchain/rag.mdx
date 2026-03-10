@@ -189,7 +189,7 @@ Indexing commonly works as follows:
 
 ### Loading documents
 
-We need to first load the blog post contents. We can use [DocumentLoaders](/oss/javascript/langchain/retrieval#document_loaders) for this, which are objects that load in data from a source and return a list of [Document](https://reference.langchain.com/javascript/classes/_langchain_core.documents.Document.html) objects.
+We need to first load the blog post contents. We can use [DocumentLoaders](/oss/javascript/langchain/retrieval#document_loaders) for this, which are objects that load in data from a source and return a list of [Document](https://reference.langchain.com/javascript/langchain-core/documents/Document) objects.
 
 
 ```typescript
@@ -230,7 +230,7 @@ Building agents with LLM (large language model) as its core controller is...
 
 Our loaded document is over 42k characters which is too long to fit into the context window of many models. Even for those models that could fit the full post in their context window, models can struggle to find information in very long inputs.
 
-To handle this we'll split the [`Document`](https://reference.langchain.com/javascript/classes/_langchain_core.documents.Document.html) into chunks for embedding and vector storage. This should help us retrieve only the most relevant parts of the blog post at run time.
+To handle this we'll split the [`Document`](https://reference.langchain.com/javascript/langchain-core/documents/Document) into chunks for embedding and vector storage. This should help us retrieve only the most relevant parts of the blog post at run time.
 
 As in the [semantic search tutorial](/oss/javascript/langchain/knowledge-base), we use a `RecursiveCharacterTextSplitter`, which will recursively split the document using common separators like new lines until each chunk is the appropriate size. This is the recommended text splitter for generic text use cases.
 
@@ -267,7 +267,7 @@ await vectorStore.addDocuments(allSplits);
 `Embeddings`: Wrapper around a text embedding model, used for converting text to embeddings.
 
 - [Integrations](/oss/javascript/integrations/text_embedding/): 30+ integrations to choose from.
-- [Interface](https://reference.langchain.com/javascript/classes/_langchain_core.embeddings.Embeddings.html): API reference for the base interface.
+- [Interface](https://reference.langchain.com/javascript/langchain-core/embeddings/Embeddings): API reference for the base interface.
 
 `VectorStore`: Wrapper around a vector database, used for storing and querying embeddings.
 
@@ -404,7 +404,7 @@ Note that the agent:
 We can see the full sequence of steps, along with latency and other metadata, in the [LangSmith trace](https://smith.langchain.com/public/7b42d478-33d2-4631-90a4-7cb731681e88/r).
 
 <Tip>
-    You can add a deeper level of control and customization using the [LangGraph](/oss/javascript/langgraph/overview) framework directly— for example, you can add steps to grade document relevance and rewrite search queries. Check out LangGraph's [Agentic RAG tutorial](/oss/javascript/langgraph/agentic-rag) for more advanced formulations.
+    You can add a deeper level of control and customization using the [LangGraph](/oss/javascript/langgraph/overview) framework directly—for example, you can add steps to grade document relevance and rewrite search queries. Check out LangGraph's [Agentic RAG tutorial](/oss/javascript/langgraph/agentic-rag) for more advanced formulations.
 </Tip>
 
 
@@ -414,9 +414,9 @@ In the above [agentic RAG](#rag-agents) formulation we allow the LLM to use its 
 
 | ✅ Benefits                                                                 | ⚠️ Drawbacks                                                                 |
 |-----------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| **Search only when needed** – The LLM can handle greetings, follow-ups, and simple queries without triggering unnecessary searches. | **Two inference calls** – When a search is performed, it requires one call to generate the query and another to produce the final response. |
-| **Contextual search queries** – By treating search as a tool with a `query` input, the LLM crafts its own queries that incorporate conversational context. | **Reduced control** – The LLM may skip searches when they are actually needed, or issue extra searches when unnecessary. |
-| **Multiple searches allowed** – The LLM can execute several searches in support of a single user query. |                                                                            |
+| **Search only when needed**—The LLM can handle greetings, follow-ups, and simple queries without triggering unnecessary searches. | **Two inference calls**—When a search is performed, it requires one call to generate the query and another to produce the final response. |
+| **Contextual search queries**—By treating search as a tool with a `query` input, the LLM crafts its own queries that incorporate conversational context. | **Reduced control**—The LLM may skip searches when they are actually needed, or issue extra searches when unnecessary. |
+| **Multiple searches allowed**—The LLM can execute several searches in support of a single user query. |                                                                            |
 
 
 Another common approach is a two-step chain, in which we always run a search (potentially using the raw user query) and incorporate the result as context for a single LLM query. This results in a single inference call per query, buying reduced latency at the expense of flexibility.
@@ -537,7 +537,7 @@ const agent = createAgent({
 ## Next steps
 
 
-Now that we've implemented a simple RAG application via [`createAgent`](https://reference.langchain.com/javascript/functions/langchain.index.createAgent.html), we can easily incorporate new features and go deeper:
+Now that we've implemented a simple RAG application via [`createAgent`](https://reference.langchain.com/javascript/langchain/index/createAgent), we can easily incorporate new features and go deeper:
 
 
 
@@ -549,9 +549,11 @@ Now that we've implemented a simple RAG application via [`createAgent`](https://
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/langchain/rag.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>

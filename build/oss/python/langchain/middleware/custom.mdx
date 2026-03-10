@@ -9,10 +9,10 @@ Build custom middleware by implementing hooks that run at specific points in the
 Middleware provides two styles of hooks to intercept agent execution:
 
 <CardGroup cols={2}>
-    <Card title="Node-style hooks" icon="share-nodes" href="#node-style-hooks">
+    <Card title="Node-style hooks" icon="share" href="#node-style-hooks">
         Run sequentially at specific execution points.
     </Card>
-    <Card title="Wrap-style hooks" icon="container-storage" href="#wrap-style-hooks">
+    <Card title="Wrap-style hooks" icon="container" href="#wrap-style-hooks">
         Run around each model or tool call.
     </Card>
 </CardGroup>
@@ -75,7 +75,7 @@ class MessageLimitMiddleware(AgentMiddleware):
 
     @hook_config(can_jump_to=["end"])
     def before_model(self, state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
-        if len(state["messages"]) == self.max_messages:
+        if len(state["messages"]) >= self.max_messages:
             return {
                 "messages": [AIMessage("Conversation limit reached.")],
                 "jump_to": "end"
@@ -166,6 +166,157 @@ class RetryMiddleware(AgentMiddleware):
 
 
 
+## State updates
+
+Both node-style and wrap-style hooks can update agent state. The mechanism differs:
+
+- **Node-style hooks** (`before_agent`, `before_model`, `after_model`, `after_agent`): Return a dict directly. The dict is applied to the agent state using the graph's reducers.
+- **Wrap-style hooks** (`wrap_model_call`, `wrap_tool_call`): For model calls, return [`ExtendedModelResponse`](https://reference.langchain.com/python/langchain/agents/middleware/types/ExtendedModelResponse) with a [`Command`](https://reference.langchain.com/python/langgraph/types/Command) to inject state updates alongside the model response. For tool calls, return a [`Command`](https://reference.langchain.com/python/langgraph/types/Command) directly. Use these when you need to track or update state based on logic that runs during the model or tool call, such as summarization trigger points, usage metadata, or custom fields calculated from the request or response.
+
+
+
+
+### Node-style hooks
+
+Return a dict from a node-style hook to merge updates into agent state. The dict keys map to state fields.
+
+```python
+from langchain.agents.middleware import after_model, AgentState
+from langgraph.runtime import Runtime
+from typing import Any
+from typing_extensions import NotRequired
+
+
+class TrackingState(AgentState):
+    model_call_count: NotRequired[int]
+
+
+@after_model(state_schema=TrackingState)
+def increment_after_model(state: TrackingState, runtime: Runtime) -> dict[str, Any] | None:
+    return {"model_call_count": state.get("model_call_count", 0) + 1}
+```
+
+
+
+
+
+### Wrap-style hooks
+
+Return a [`ExtendedModelResponse`](https://reference.langchain.com/python/langchain/agents/middleware/types/ExtendedModelResponse) with a [`Command`](https://reference.langchain.com/python/langgraph/types/Command) from `wrap_model_call` to inject state updates from the model call layer:
+
+```python
+from typing import Callable
+from langchain.agents.middleware import (
+    wrap_model_call,
+    ModelRequest,
+    ModelResponse,
+    AgentState,
+    ExtendedModelResponse
+)
+from langgraph.types import Command
+from typing_extensions import NotRequired
+
+class UsageTrackingState(AgentState):
+    """Agent state with token usage tracking."""
+
+    last_model_call_tokens: NotRequired[int]
+
+
+@wrap_model_call(state_schema=UsageTrackingState)
+def track_usage(
+    request: ModelRequest,
+    handler: Callable[[ModelRequest], ModelResponse],
+) -> ExtendedModelResponse:
+    response = handler(request)
+    return ExtendedModelResponse(
+        model_response=response,
+        command=Command(update={"last_model_call_tokens": 150}),
+    )
+```
+
+
+
+
+
+The [`Command`](https://reference.langchain.com/python/langgraph/types/Command) flows through the graph's reducers, so updates are applied correctly and messages are additive rather than replacing existing state.
+
+#### Composition with multiple middleware
+
+When multiple middleware layers return `ExtendedModelResponse`, their commands compose:
+
+- **Commands are applied through reducers:** Each `Command` becomes a separate state update. For messages, this means they are additive.
+- **Outer wins on conflicts:** For non-reducer state fields, commands are applied inner-first, then outer. The outermost middleware's value takes precedence on conflicting keys.
+- **Retry-safe:** If the outer middleware implements logic that can result in multiple calls to `handler()` again (for example, retry logic), commands from earlier calls are discarded.
+
+
+
+
+
+```python
+from typing import Annotated, Callable
+
+from langchain.agents.middleware import (
+    AgentMiddleware,
+    AgentState,
+    ExtendedModelResponse,
+    ModelRequest,
+    ModelResponse,
+)
+from langchain.messages import SystemMessage
+from langgraph.types import Command
+from typing_extensions import NotRequired
+
+
+def _last_wins(_a: str, b: str) -> str:
+    """Reducer: last writer wins (outer overwrites inner)."""
+    return b
+
+
+class CustomMiddlewareState(AgentState):
+    """Agent state: trace_layer uses last-wins (outer wins), messages use additive reducer."""
+
+    # Non-reducer field with last-wins: both middleware write; outermost value wins
+    trace_layer: NotRequired[Annotated[str, _last_wins]]
+
+
+class OuterMiddleware(AgentMiddleware):
+    def wrap_model_call(
+        self,
+        request: ModelRequest,
+        handler: Callable[[ModelRequest], ModelResponse],
+    ) -> ExtendedModelResponse:
+        response = handler(request)
+        return ExtendedModelResponse(
+            model_response=response,
+            command=Command(update={
+                "trace_layer": "outer",
+                "messages": [SystemMessage(content="[Outer ran]")],
+            }),
+        )
+
+
+class InnerMiddleware(AgentMiddleware):
+    """Adds trace_layer and message. Outer adds to same keys; trace_layer: outer wins, messages: additive."""
+
+    def wrap_model_call(
+        self,
+        request: ModelRequest,
+        handler: Callable[[ModelRequest], ModelResponse],
+    ):
+        response = handler(request)
+        return ExtendedModelResponse(
+            model_response=response,
+            command=Command(update={
+                "trace_layer": "inner",
+                "messages": [SystemMessage(content="[Inner ran]")],
+            }),
+        )
+```
+
+
+
+
+
 ## Create middleware
 
 You can create middleware in two ways:
@@ -174,7 +325,7 @@ You can create middleware in two ways:
   <Card title="Decorator-based middleware" icon="at" href="#decorator-based-middleware">
     Quick and simple for single-hook middleware. Use decorators to wrap individual functions.
   </Card>
-  <Card title="Class-based middleware" icon="brackets-curly" href="#class-based-middleware">
+  <Card title="Class-based middleware" icon="braces" href="#class-based-middleware">
     More powerful for complex middleware with multiple hooks or configuration.
   </Card>
 </CardGroup>
@@ -186,17 +337,17 @@ Quick and simple for single-hook middleware. Use decorators to wrap individual f
 **Available decorators:**
 
 **Node-style:**
-- [`@before_agent`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.before_agent) - Runs before agent starts (once per invocation)
-- [`@before_model`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.before_model) - Runs before each model call
-- [`@after_model`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.after_model) - Runs after each model response
-- [`@after_agent`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.after_agent) - Runs after agent completes (once per invocation)
+- [`@before_agent`](https://reference.langchain.com/python/langchain/agents/middleware/types/before_agent) - Runs before agent starts (once per invocation)
+- [`@before_model`](https://reference.langchain.com/python/langchain/agents/middleware/types/before_model) - Runs before each model call
+- [`@after_model`](https://reference.langchain.com/python/langchain/agents/middleware/types/after_model) - Runs after each model response
+- [`@after_agent`](https://reference.langchain.com/python/langchain/agents/middleware/types/after_agent) - Runs after agent completes (once per invocation)
 
 **Wrap-style:**
-- [`@wrap_model_call`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.wrap_model_call) - Wraps each model call with custom logic
-- [`@wrap_tool_call`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.wrap_tool_call) - Wraps each tool call with custom logic
+- [`@wrap_model_call`](https://reference.langchain.com/python/langchain/agents/middleware/types/wrap_model_call) - Wraps each model call with custom logic
+- [`@wrap_tool_call`](https://reference.langchain.com/python/langchain/agents/middleware/types/wrap_tool_call) - Wraps each tool call with custom logic
 
 **Convenience:**
-- [`@dynamic_prompt`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.dynamic_prompt) - Generates dynamic system prompts
+- [`@dynamic_prompt`](https://reference.langchain.com/python/langchain/agents/middleware/types/dynamic_prompt) - Generates dynamic system prompts
 
 **Example:**
 
@@ -714,7 +865,7 @@ agent = create_agent(
 
 ### Working with system messages
 
-Modify system messages in middleware using the `system_message` field on `ModelRequest`. The `system_message` field contains a [`SystemMessage`](https://reference.langchain.com/python/langchain/messages/#langchain.messages.SystemMessage) object (even if the agent was created with a string `system_prompt`).
+Modify system messages in middleware using the `system_message` field on `ModelRequest`. The `system_message` field contains a [`SystemMessage`](https://reference.langchain.com/python/langchain-core/messages/system/SystemMessage) object (even if the agent was created with a string `system_prompt`).
 
 **Example: Adding context to system message**
 
@@ -832,10 +983,10 @@ class CachedContextMiddleware(AgentMiddleware):
 </Tabs>
 
 **Notes:**
-- `ModelRequest.system_message` is always a [`SystemMessage`](https://reference.langchain.com/python/langchain/messages/#langchain.messages.SystemMessage) object, even if the agent was created with `system_prompt="string"`
+- `ModelRequest.system_message` is always a [`SystemMessage`](https://reference.langchain.com/python/langchain-core/messages/system/SystemMessage) object, even if the agent was created with `system_prompt="string"`
 - Use `SystemMessage.content_blocks` to access content as a list of blocks, regardless of whether the original content was a string or list
 - When modifying system messages, use `content_blocks` and append new blocks to preserve existing structure
-- You can pass [`SystemMessage`](https://reference.langchain.com/python/langchain/messages/#langchain.messages.SystemMessage) objects directly to `create_agent`'s `system_prompt` parameter for advanced use cases like cache control
+- You can pass [`SystemMessage`](https://reference.langchain.com/python/langchain-core/messages/system/SystemMessage) objects directly to `create_agent`'s `system_prompt` parameter for advanced use cases like cache control
 
 
 
@@ -849,9 +1000,11 @@ class CachedContextMiddleware(AgentMiddleware):
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/langchain/middleware/custom.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>

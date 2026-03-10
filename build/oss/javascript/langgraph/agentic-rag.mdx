@@ -188,7 +188,7 @@ Now we will start building components ([nodes](/oss/javascript/langgraph/graph-a
 
 
 
-1. Add a node — `gradeDocuments` — to determine whether the retrieved documents are relevant to the question. We will use a model with structured output using Zod for document grading. We'll also add a [conditional edge](/oss/javascript/langgraph/graph-api#conditional-edges) — `checkRelevance` — that checks the grading result and returns the name of the node to go to (`generate` or `rewrite`):
+1. Add a node—`gradeDocuments`—to determine whether the retrieved documents are relevant to the question. We will use a model with structured output using Zod for document grading. We'll also add a [conditional edge](/oss/javascript/langgraph/graph-api#conditional-edges)—`checkRelevance`—that checks the grading result and returns the name of the node to go to (`generate` or `rewrite`):
   ```typescript
   import * as z from "zod";
   import { ChatPromptTemplate } from "@langchain/core/prompts";
@@ -430,7 +430,7 @@ Now we'll assemble all the nodes and edges into a complete graph:
   * Otherwise, respond directly to the user
 * Grade retrieved document content for relevance to the question (`gradeDocuments`) and route to next step:
   * If not relevant, rewrite the question using `rewrite` and then call `generateQueryOrRespond` again
-  * If relevant, proceed to `generate` and generate final response using the [`ToolMessage`](https://reference.langchain.com/javascript/classes/_langchain_core.messages.ToolMessage.html) with the retrieved document context
+  * If relevant, proceed to `generate` and generate final response using the [`ToolMessage`](https://reference.langchain.com/javascript/langchain-core/messages/ToolMessage) with the retrieved document context
 
 ```typescript
 import { StateGraph, START, END, ConditionalEdgeRouter } from "@langchain/langgraph";
@@ -547,9 +547,11 @@ Output from node: 'generate'
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/langgraph/agentic-rag.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>

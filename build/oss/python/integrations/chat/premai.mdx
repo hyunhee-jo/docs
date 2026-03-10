@@ -154,7 +154,7 @@ Writing Prompt Templates can be super messy. Prompt templates are long, hard to 
 
 With **Prem**, writing and managing prompts can be super easy. The **_Templates_** tab inside the [launchpad](https://docs.premai.io/get-started/launchpad) helps you write as many prompts you need and use it inside the SDK to make your application running using those prompts. You can read more about Prompt Templates [here](https://docs.premai.io/get-started/prem-templates).
 
-To use Prem Templates natively with LangChain, you need to pass an id the `HumanMessage`. This id should be the name the variable of your prompt template. the `content` in [`HumanMessage`](https://reference.langchain.com/python/langchain/messages/#langchain.messages.HumanMessage) should be the value of that variable.
+To use Prem Templates natively with LangChain, you need to pass an id the `HumanMessage`. This id should be the name the variable of your prompt template. the `content` in [`HumanMessage`](https://reference.langchain.com/python/langchain-core/messages/human/HumanMessage) should be the value of that variable.
 
 let's say for example, if your prompt template was this:
 
@@ -163,7 +163,7 @@ Say hello to my name and say a feel-good quote
 from my age. My name is: {name} and age is {age}
 ```
 
-So now your human_messages should look like:
+Your `human_messages` should now look like:
 
 ```python
 human_messages = [
@@ -380,9 +380,11 @@ Now, as done above, we parse this and run this functions and call the LLM once a
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/chat/premai.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>

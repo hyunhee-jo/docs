@@ -48,7 +48,7 @@ Head to [OpenAI's website](https://platform.openai.com/) to sign up for OpenAI a
 export OPENAI_API_KEY="your-api-key"
 ```
 
-If you want to get automated tracing of your model calls you can also set your [LangSmith](https://docs.langchain.com/langsmith/home) API key by uncommenting below:
+If you want to get automated tracing of your model calls you can also set your [LangSmith](/langsmith/home) API key by uncommenting below:
 
 ```bash
 # export LANGSMITH_TRACING="true"
@@ -57,7 +57,7 @@ If you want to get automated tracing of your model calls you can also set your [
 
 ### Installation
 
-The LangChain [`ChatOpenAI`](https://reference.langchain.com/javascript/classes/_langchain_openai.ChatOpenAI.html) integration lives in the `@langchain/openai` package:
+The LangChain [`ChatOpenAI`](https://reference.langchain.com/javascript/langchain-openai/ChatOpenAI) integration lives in the `@langchain/openai` package:
 
 <CodeGroup>
 ```bash npm
@@ -177,7 +177,7 @@ await llmWithCustomHeaders.invoke("Hi there!");
 
 ## Disabling streaming usage metadata
 
-Some proxies or third-party providers present largely the same API interface as OpenAI, but don't support the more recently added `stream_options` parameter to return streaming usage. You can use [`ChatOpenAI`](https://reference.langchain.com/javascript/classes/_langchain_openai.ChatOpenAI.html) to access these providers by disabling streaming usage like this:
+Some proxies or third-party providers present largely the same API interface as OpenAI, but don't support the more recently added `stream_options` parameter to return streaming usage. You can use [`ChatOpenAI`](https://reference.langchain.com/javascript/langchain-openai/ChatOpenAI) to access these providers by disabling streaming usage like this:
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -303,7 +303,7 @@ console.dir(responseMessageWithLogprobs.response_metadata.logprobs, { depth: nul
 
 [Custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools) support tools with arbitrary string inputs. They can be particularly useful when you expect your string arguments to be long or complex.
 
-If you use a model that supports custom tools, you can use the [`ChatOpenAI`](https://reference.langchain.com/javascript/classes/_langchain_openai.ChatOpenAI.html) class and the `customTool` function to create a custom tool.
+If you use a model that supports custom tools, you can use the [`ChatOpenAI`](https://reference.langchain.com/javascript/langchain-openai/ChatOpenAI) class and the `customTool` function to create a custom tool.
 
 ```typescript
 import { ChatOpenAI, customTool } from "@langchain/openai";
@@ -522,7 +522,7 @@ OpenAI supports a [Responses](https://platform.openai.com/docs/guides/responses-
 
 ### Built-in tools
 
-Equipping [`ChatOpenAI`](https://reference.langchain.com/javascript/classes/_langchain_openai.ChatOpenAI.html) with built-in tools will ground its responses with outside information, such as via context in files or the web. The [AIMessage](/oss/javascript/langchain/messages/#aimessage) generated from the model will include information about the built-in tool invocation.
+Equipping [`ChatOpenAI`](https://reference.langchain.com/javascript/langchain-openai/ChatOpenAI) with built-in tools will ground its responses with outside information, such as via context in files or the web. The [AIMessage](/oss/javascript/langchain/messages/#aimessage) generated from the model will include information about the built-in tool invocation.
 
 #### Web search
 
@@ -1384,9 +1384,11 @@ For detailed documentation of all ChatOpenAI features and configurations head to
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/javascript/integrations/chat/openai.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>

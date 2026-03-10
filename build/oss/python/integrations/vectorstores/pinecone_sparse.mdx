@@ -208,11 +208,11 @@ for res in results:
 * LangGraph is the best framework for building stateful, agentic applications! [{'source': 'social'}]
 ```
 
-When comparing these results, we can see that our first query returned a different record from the `"website"` source. In our latter, filtered, query — this is no longer the case.
+When comparing these results, we can see that our first query returned a different record from the `"website"` source. In our latter, filtered, query—this is no longer the case.
 
 ### Similarity search and scores
 
-We can also search while returning the similarity score in a list of `(document, score)` tuples. Where the `document` is a LangChain [`Document`](https://reference.langchain.com/python/langchain_core/documents/#langchain_core.documents.base.Document) object containing our text content and metadata.
+We can also search while returning the similarity score in a list of `(document, score)` tuples. Where the `document` is a LangChain [`Document`](https://reference.langchain.com/python/langchain-core/documents/base/Document) object containing our text content and metadata.
 
 ```python
 results = vector_store.similarity_search_with_score(
@@ -283,9 +283,11 @@ Sparse Embeddings:
 
 ---
 
-<Callout icon="pen-to-square" iconType="regular">
+<div className="source-links">
+<Callout icon="edit">
     [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/vectorstores/pinecone_sparse.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
-<Tip icon="terminal" iconType="regular">
+<Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
-</Tip>
+</Callout>
+</div>
